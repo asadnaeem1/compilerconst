@@ -16,7 +16,6 @@ namespace LexicalAnalyzer
         public Form1()
         {
             InitializeComponent();
-            fctb.Text = System.IO.File.ReadAllText(@"D:\a.txt");
         }
 
         private void newToolStripMenuItem_Click(object sender, EventArgs e)
@@ -56,7 +55,7 @@ namespace LexicalAnalyzer
             StaticComponents.tokenSet.Clear();
             string source = fctb.Text, temp = "";
             foreach (char c in source)
-            {                
+            {
                 if (c == 32){
                     if (temp != ""){
                         //temp not starting with "
@@ -78,6 +77,7 @@ namespace LexicalAnalyzer
                         addTokenToList(temp);
                         temp = "";
                     }
+                    wordNumber = 1;
                 }
                 else if (c==10)
                 {
@@ -150,7 +150,8 @@ namespace LexicalAnalyzer
                         }
                         else if (c == '"')
                         {
-                            addTokenToList(temp);
+                            if(temp!="")
+                                addTokenToList(temp);
                             temp = "";
                             temp += c;
                         }
@@ -190,10 +191,7 @@ namespace LexicalAnalyzer
                 }
                 index++;
             }
-            if (regexCheck(temp, 1) && temp!="")
-            {
-                addTokenToList(temp);
-            }
+            addTokenToList(temp);
             string hh = "";
             foreach(Token t in StaticComponents.tokenSet)
                 hh+=t.ToString()+"\n";
