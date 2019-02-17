@@ -16,7 +16,7 @@ namespace LexicalAnalyzer
         public Form1()
         {
             InitializeComponent();
-
+            fctb.Text = System.IO.File.ReadAllText(@"D:\a.txt");
         }
 
         private void newToolStripMenuItem_Click(object sender, EventArgs e)
@@ -50,113 +50,193 @@ namespace LexicalAnalyzer
             breakKeywords();
         }
 
+        public int index = 0, wordNumber = 1, lineNumber = 1;
         public void breakKeywords()
         {
-            string sourceCode = fctb.Text, temp = "";
-            bool stringFlag = false;
-            int lineNumber = 1, index = 1;
-            string[] lines = sourceCode.Split("\n".ToCharArray());
-            foreach(string s in lines){
-                string[] words = s.Split(' ');
-                foreach(string ss in words){
-                    foreach(char c in ss){
-                        if (c != '\r')
+            StaticComponents.tokenSet.Clear();
+            string source = fctb.Text, temp = "";
+            MessageBox.Show(regexCheck("\"asad\\\"asad",6).ToString());
+            MessageBox.Show("\"asad\\\"asad\"");
+            foreach (char c in source)
+            {                
+                if (c == 32){
+                    if (temp != ""){
+                        //temp not starting with "
+                        if (!regexCheck(temp, 6))
                         {
-                            //if c is not a punctuator
-                            if (!regexCheck(c, 5))
-                            {
-                                temp += c;
-                            }
-                            //is a punctuator
-                            else
-                            {
-                                // types . " and others
-                                //string
-                                if (c=='"')
-                                {
-                                    stringFlag = !stringFlag;
-                                    if (!string.IsNullOrWhiteSpace(temp))
-                                    {
-                                        addTokenToList(temp, index, lineNumber);
-                                        index++;
-                                        temp = "";
-                                    }
-                                }
-                                else if (c == '.')
-                                {
-                                    //check if temp is only numeric
-                                    if (regexCheck(temp, 3))
-                                    {
-                                        temp += c;
-                                    }
-                                    else
-                                    {
-                                        if (!string.IsNullOrWhiteSpace(temp))
-                                        {
-                                            addTokenToList(temp, index, lineNumber);
-                                            index++;
-                                        }
-                                        addTokenToList(c.ToString(), index, lineNumber);
-                                        index++;
-                                        temp = "";
-                                    }
-                                }
-                                else
-                                {
-                                    if (!string.IsNullOrWhiteSpace(temp))
-                                    {
-                                        addTokenToList(temp, index, lineNumber);
-                                        index++;
-                                    }
-                                    addTokenToList(c.ToString(), index, lineNumber);
-                                    index++;
-                                    temp = "";
-                                }
-                            }
+                            addTokenToList(temp);
+                            temp = "";
                         }
-                    }
-                    //end of word, if temp is not empty insert into keywords
-                    if (!string.IsNullOrWhiteSpace(temp))
-                    {
-                        addTokenToList(temp, index, lineNumber);
-                        temp = "";
+                        else
+                        {
+                            temp += c;
+                        }
                     }
                     index++;
                 }
-                lineNumber++;
-                index = 1;
+                else if (c == 13)
+                {
+                    if (temp != "")
+                    {
+                        addTokenToList(temp);
+                        temp = "";
+                    }
+                }
+                else if (c==10)
+                {
+                    lineNumber++;
+                    index = 0;
+                    wordNumber = 1;
+                }
+                // c alphabet
+                else if (regexCheck(c,8))
+                {
+                    if (temp == "")
+                        temp += c;
+                    // temp .
+                    else if (regexCheck(temp, 5))
+                    {
+                        addTokenToList(temp);
+                        temp = c.ToString();
+                    }
+                    //temp alphanumeric or .numalpha
+                    else if (regexCheck(temp, 1) || regexCheck(temp, 7))
+                    {
+                        if (temp.Last() == '.')
+                        {
+                            addTokenToList(temp);
+                            temp = c.ToString();
+                        }
+                        else
+                            temp += c;
+                    }
+                    //temp starts with "
+                    else if (regexCheck(temp, 6))
+                    {
+                        temp += c;
+                    }
+                }
+                //c numeric
+                else if (regexCheck(c, 2))
+                {
+                    //temp alphanumeric or .numalpha
+                    if (regexCheck(temp, 1) || regexCheck(temp, 7))
+                    {
+                        temp += c;
+                    }
+                    //temp starts with "
+                    else if (regexCheck(temp, 6))
+                    {
+                        temp += c;
+                    }
+                }
+                //c punctuator
+                else if (regexCheck(c,3))
+                {
+                    //temp not starting with "
+                    if (!regexCheck(temp, 6))
+                    {
+                        //c is a .
+                        if (c == '.')
+                        {
+                            //temp is numeric
+                            if (regexCheck(temp, 2))
+                            {
+                                temp += c;
+                            }
+                            //temp is alphanumeric or .numalpha
+                            else if (regexCheck(temp, 1) || regexCheck(temp, 7))
+                            {
+                                addTokenToList(temp);
+                                temp = c.ToString();
+                            }
+                        }
+                        else if (c == '"')
+                        {
+                            addTokenToList(temp);
+                            temp = "";
+                            temp += c;
+                        }
+                        else if (temp == "")
+                        {
+                            addTokenToList(c.ToString());
+                        }
+                        else
+                        {
+                            addTokenToList(temp);
+                            addTokenToList(c.ToString());
+                            temp = "";
+                        }
+                    }
+                    //c is a "
+                    else if (c == '"')
+                    {
+                        //check if temp is not empty
+                        if (temp != "")
+                        {
+                            if (temp.Last() != '\\')
+                            {
+                                temp += c;
+                                addTokenToList(temp);
+                                temp = "";
+                            }
+                            else
+                            {
+                                temp += c;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        temp += c;
+                    }
+                }
             }
-            string mes = "";
-            foreach (Token t in StaticComponents.tokenSet)
+            if (regexCheck(temp, 1) && temp!="")
             {
-                mes += t.ToString() + "\n";
+                addTokenToList(temp);
             }
-            MessageBox.Show(mes);
+            string hh = "";
+            foreach(Token t in StaticComponents.tokenSet)
+                hh+=t.ToString()+"\n";
+            MessageBox.Show(hh);
         }
         public bool regexCheck(dynamic keyword, int type)
         {
             string regex = "";
             switch (type)
             {
-                //string check if alphanumeric or _
+                //check if alphanumeric or _
                 case 1:
                     regex = @"^[a-zA-Z0-9_]*$";
                     break;
-                //char check if alphanumeric or _
-                case 2:
-                    regex = @"[a-zA-Z0-9_]";
-                    break;
                 //string check if only numric
-                case 3:
+                case 2:
                     regex = @"^[0-9]*$";
                     break;
-                //char check if only numric
-                case 4:
-                    regex = @"[0-9]";
-                    break;
                 //char check if punctuator
-                case 5:
+                case 3:
                     regex = @"[^a-zA-Z0-9_]";
+                    break;
+                //check string if numeric decimal
+                case 4:
+                    regex = @"^[0-9]*[.]{1}[0-9]*$";
+                    break;
+                //check if string = '.'
+                case 5:
+                    regex = @"^[.]{1}$";
+                    break;
+                //check string start with " can contain multiple \"
+                case 6:
+                    regex = "^\"[^\"]*(\\\\\")*[^\"]*$";
+                    break;
+                //check string is .numalpha
+                case 7:
+                    regex = @"^[0-9]*[.]?[a-zA-Z0-9_]*$";
+                    break;
+                // check string if only alphabets
+                case 8:
+                    regex = @"^[a-zA-Z]*$";
                     break;
                 default:
                     break;
@@ -175,9 +255,9 @@ namespace LexicalAnalyzer
                 return false;
         }
 
-        public void addTokenToList(string value, int index, int lineNumber)
+        public void addTokenToList(dynamic value)
         {
-            StaticComponents.tokenSet.Add(new Token("", value, index, lineNumber));
+            StaticComponents.tokenSet.Add(new Token("", value.ToString(), index, lineNumber));
         }
     }
 }
