@@ -55,8 +55,6 @@ namespace LexicalAnalyzer
         {
             StaticComponents.tokenSet.Clear();
             string source = fctb.Text, temp = "";
-            MessageBox.Show(regexCheck("\"asad\\\"asad",6).ToString());
-            MessageBox.Show("\"asad\\\"asad\"");
             foreach (char c in source)
             {                
                 if (c == 32){
@@ -72,7 +70,6 @@ namespace LexicalAnalyzer
                             temp += c;
                         }
                     }
-                    index++;
                 }
                 else if (c == 13)
                 {
@@ -191,6 +188,7 @@ namespace LexicalAnalyzer
                         temp += c;
                     }
                 }
+                index++;
             }
             if (regexCheck(temp, 1) && temp!="")
             {
@@ -257,7 +255,34 @@ namespace LexicalAnalyzer
 
         public void addTokenToList(dynamic value)
         {
-            StaticComponents.tokenSet.Add(new Token("", value.ToString(), index, lineNumber));
+            StaticComponents.tokenSet.Add(new Token("", value.ToString(), index, wordNumber, lineNumber));
+            StaticComponents.tokenSet.Last().index -= StaticComponents.tokenSet.Last().value.Length;
+            wordNumber++;
+        }
+
+        private void copyToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            fctb.Copy();
+        }
+
+        private void cutToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            fctb.Cut();
+        }
+
+        private void pasteToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            fctb.Paste();
+        }
+
+        private void undoToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            fctb.Undo();
+        }
+
+        private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("Lexical Analyzer - Compiler Construction\nMs. Maryam Feroze\n\nSyed M. Faisal\nMuhammad Asad\nMuhammad Danish");
         }
     }
 }
